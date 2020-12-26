@@ -2,14 +2,38 @@ package cls
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 
+	"github.com/pierrec/lz4"
 	"google.golang.org/protobuf/proto"
 )
+
+func lz4Compress(src []byte) ([]byte, error) {
+	dst := make([]byte, len(src))
+	ht := make([]int, 64<<10)
+
+	n, err := lz4.CompressBlock(src, dst, ht)
+	if err != nil {
+		return nil, err
+	}
+	if n == 0 || n >= len(src) {
+		return nil, fmt.Errorf("incompressible data")
+	}
+	return dst[:n], nil
+}
+
+func md5Sum(p []byte) string {
+	h := md5.New()
+	h.Write(p)
+	return hex.EncodeToString(h.Sum(nil))
+}
 
 type Cursor struct {
 	Value string `json:"cursor"`
@@ -25,7 +49,23 @@ func (cls *ClSCleint) UploadLog(logTopicID string, logGroupList LogGroupList, ha
 
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
 
-	body := bytes.NewBuffer([]byte(data))
+	body := bytes.NewBuffer(nil)
+	var incompressible bool
+	if compress {
+		lzdata, err := lz4Compress(data)
+		if err != nil {
+			if !errors.Is(err, fmt.Errorf("incompressible data")) {
+				return err
+			}
+			body.Write(data)
+			incompressible = true
+		} else {
+			body.Write(lzdata)
+		}
+	} else {
+		body.Write(data)
+	}
+
 	sig := Signature(fmt.Sprintf("%s", cls.SecretId), fmt.Sprintf("%s", cls.SecretKey),
 		"POST", "/structuredlog", params, headers, 300)
 
@@ -37,10 +77,11 @@ func (cls *ClSCleint) UploadLog(logTopicID string, logGroupList LogGroupList, ha
 	req.Header.Add("Host", fmt.Sprintf("%s", cls.Host))
 	req.Header.Add("Content-Type", "application/x-protobuf")
 	if hash != "" {
-		req.Header.Add("x-cls-hashkeye", hash)
+		req.Header.Add("x-cls-hashkeye", md5Sum(body.Bytes()))
 	}
-	if compress {
-		req.Header.Add("x-cls-compress-type", "lz4")
+
+	if compress && !incompressible {
+		req.Header.Set("x-cls-compress-type", "lz4")
 	}
 
 	client := &http.Client{}
