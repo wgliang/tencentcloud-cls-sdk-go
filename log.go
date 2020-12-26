@@ -32,6 +32,7 @@ func lz4Compress(src []byte) ([]byte, error) {
 func md5Sum(p []byte) string {
 	h := md5.New()
 	h.Write(p)
+
 	return hex.EncodeToString(h.Sum(nil))
 }
 
@@ -137,14 +138,7 @@ func (cls *ClSCleint) SearchLog(requestDataMap map[string]string) (string, error
 		params.Add(fmt.Sprintf("%s", k), fmt.Sprintf("%s", v))
 		urlString = fmt.Sprintf("%s&%s=%s", urlString, k, url.QueryEscape(v))
 	}
-	urlString = urlString[1:len(urlString)]
-	fmt.Println(fmt.Sprintf("http://%s/searchlog?%s", cls.Host, urlString))
-	// var params = url.Values{"logset_id": {fmt.Sprintf("%s", logSetID)},
-	// 	"topic_ids": {fmt.Sprintf("%s", topicIDs)}, "start_time": {fmt.Sprintf("%s", startTime)},
-	// 	"end_time": {fmt.Sprintf("%s", endTime)}, "query_string": {fmt.Sprintf("%s", queryString)},
-	// 	"limit": {fmt.Sprintf("%s", limit)}, "context": {fmt.Sprintf("%s", context)},
-	// 	"sort": {fmt.Sprintf("%s", sort)},
-	// }
+	urlString = urlString[1:]
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
 
 	sig := Signature(fmt.Sprintf("%s", cls.SecretId), fmt.Sprintf("%s", cls.SecretKey),

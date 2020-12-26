@@ -175,17 +175,6 @@ func structuredlog(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func headers(w http.ResponseWriter, req *http.Request) {
-	// This handler does something a little more
-	// sophisticated by reading all the HTTP request
-	// headers and echoing them into the response body.
-	for name, headers := range req.Header {
-		for _, h := range headers {
-			fmt.Fprintf(w, "%v: %v\n", name, h)
-		}
-	}
-}
-
 func main() {
 	// We register our handlers on server routes using the
 	// `http.HandleFunc` convenience function. It sets up

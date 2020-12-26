@@ -48,6 +48,7 @@ func (cls *ClSCleint) CreateConsumerGroup(group *ConsumerGroup, topicID string) 
 	}
 
 	var params = url.Values{"topic_id": {fmt.Sprintf("%s", topicID)}}
+
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
 
 	body := bytes.NewBuffer([]byte(data))
@@ -75,7 +76,7 @@ func (cls *ClSCleint) CreateConsumerGroup(group *ConsumerGroup, topicID string) 
 	return nil
 }
 
-func (cls *ClSCleint) GetConsumerCursor(topicID string, partitionID int, from string) (cursor ConsumerCursor, err error) {
+func (cls *ClSCleint) GetConsumerCursor(topicID, partitionID, from string) (cursor ConsumerCursor, err error) {
 	var params = url.Values{"topic_id": {fmt.Sprintf("%s", topicID)}, "partition_id": {fmt.Sprintf("%s", partitionID)}, "from": {fmt.Sprintf("%s", from)}}
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
 
@@ -99,14 +100,13 @@ func (cls *ClSCleint) GetConsumerCursor(topicID string, partitionID int, from st
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal(body, &cursor); err != nil {
-		fmt.Println(err)
 		return cursor, err
 	}
 
 	return cursor, nil
 }
 
-func (cls *ClSCleint) GetConsumerGroupCursors(topicID string, partitionID int, consumerGroup string) (cursors ConsumerGroupCursors, err error) {
+func (cls *ClSCleint) GetConsumerGroupCursors(topicID, partitionID, consumerGroup string) (cursors ConsumerGroupCursors, err error) {
 	var params = url.Values{"topic_id": {fmt.Sprintf("%s", topicID)}, "partition_id": {fmt.Sprintf("%s", partitionID)}, "consumer_group": {fmt.Sprintf("%s", consumerGroup)}}
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
 
@@ -130,7 +130,6 @@ func (cls *ClSCleint) GetConsumerGroupCursors(topicID string, partitionID int, c
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal(body, &cursors); err != nil {
-		fmt.Println(err)
 		return cursors, err
 	}
 
@@ -161,7 +160,6 @@ func (cls *ClSCleint) GetConsumerData(topicID string, partitionID int, cursor st
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal(body, &list); err != nil {
-		fmt.Println(err)
 		return list, err
 	}
 
