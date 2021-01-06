@@ -22,6 +22,11 @@ func calSha1HMACDigest(key, msg string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
+// Signature 计算步骤：
+// 1,按照指定格式拼接 HTTP 请求的相关信息为字符串 HttpRequestInfo。
+// 2,对 HttpRequestInfo 使用 sha1 算法计算哈希值，与其他指定参数按照指定格式组成签名原串 StringToSign。
+// 3,使用 SecretKey 对 q-key-time 进行加密，得到 SignKey。
+// 4,使用 SignKey 对 StringToSign 进行加密，生成 Signature。
 func Signature(secretID, secretKey, method, path string, params, headers url.Values, expire int64) string {
 	var signedHeaderList []string
 	var signedParameterList []string
@@ -35,6 +40,7 @@ func Signature(secretID, secretKey, method, path string, params, headers url.Val
 			}
 		}
 	}
+
 	var formatHeaders = hs.Encode()
 	sort.Strings(signedHeaderList)
 	ps := url.Values{}
@@ -45,14 +51,15 @@ func Signature(secretID, secretKey, method, path string, params, headers url.Val
 			signedParameterList = append(signedParameterList, lowerKey)
 		}
 	}
+
 	var formatParameters = ps.Encode()
 	sort.Strings(signedParameterList)
 	var formatString = fmt.Sprintf("%s\n%s\n%s\n%s\n", strings.ToLower(method), path, formatParameters, formatHeaders)
 	var signTime = fmt.Sprintf("%d;%d", time.Now().Unix()-60, time.Now().Unix()+expire)
-	//signTime = "1510109254;1510109314"
 	var stringToSign = fmt.Sprintf("sha1\n%s\n%s\n", signTime, calSha1sum(formatString))
 	var signKey = calSha1HMACDigest(secretKey, signTime)
 	var signature = calSha1HMACDigest(signKey, stringToSign)
+
 	return strings.Join([]string{
 		"q-sign-algorithm=sha1",
 		"q-ak=" + secretID,

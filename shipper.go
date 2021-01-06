@@ -61,7 +61,7 @@ type TaskInfo struct {
 	Message    string `json:"message"`
 }
 
-// TODO
+// CreateShipper 创建新的投递任务，如果使用此接口，需要自行处理 CLS 对指定 Bucket 的写权限。
 func (cls *ClSCleint) CreateShipper(shipper *Shipper) (string, error) {
 	data, err := json.Marshal(shipper)
 	if err != nil {
@@ -103,6 +103,7 @@ func (cls *ClSCleint) CreateShipper(shipper *Shipper) (string, error) {
 	return shipperID.ShipperID, nil
 }
 
+// GetShipper 本接口用于获取指定投递策略的详细信息
 func (cls *ClSCleint) GetShipper(shipperID string) (shipper Shipper, err error) {
 	var params = url.Values{"shipper_id": {fmt.Sprintf("%s", shipperID)}}
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
@@ -134,6 +135,7 @@ func (cls *ClSCleint) GetShipper(shipperID string) (shipper Shipper, err error) 
 	return shipper, nil
 }
 
+// GetTopicShipperList 本接口用于获取指定日志主题的投递策略详细列表
 func (cls *ClSCleint) GetTopicShipperList(topicID string) (shipperList ShipperList, err error) {
 	var params = url.Values{"topic_id": {fmt.Sprintf("%s", topicID)}}
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
@@ -162,6 +164,7 @@ func (cls *ClSCleint) GetTopicShipperList(topicID string) (shipperList ShipperLi
 	return shipperList, nil
 }
 
+// GetShipperList 本接口可用于获取投递任务信息列表。
 func (cls *ClSCleint) GetShipperList(shipperID, startTime, endTime string) (tasks Tasks, err error) {
 	var params = url.Values{"shipper_id": {fmt.Sprintf("%s", shipperID)}, "start_time": {fmt.Sprintf("%s", startTime)}, "end_time": {fmt.Sprintf("%s", endTime)}}
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
@@ -194,6 +197,7 @@ func (cls *ClSCleint) GetShipperList(shipperID, startTime, endTime string) (task
 	return tasks, nil
 }
 
+// UpdateShipper 本接口可用于修改现有的投递任务，客户如果使用此接口，需要自行处理 CLS 对指定 Bucket 的写权限。
 func (cls *ClSCleint) UpdateShipper(shipper *Shipper) (string, error) {
 	data, err := json.Marshal(shipper)
 	if err != nil {
@@ -234,6 +238,7 @@ func (cls *ClSCleint) UpdateShipper(shipper *Shipper) (string, error) {
 	return shipperID.ShipperID, nil
 }
 
+// UpdateTask 本接口可用于重试失败的投递任务。
 func (cls *ClSCleint) UpdateTask(shipper *Shipper) error {
 	data, err := json.Marshal(shipper)
 	if err != nil {
@@ -268,6 +273,7 @@ func (cls *ClSCleint) UpdateTask(shipper *Shipper) error {
 	return nil
 }
 
+// DeleteShipper 本接口用于删除投递配置。
 func (cls *ClSCleint) DeleteShipper(shipperID string) error {
 	var params = url.Values{"shipper_id": {fmt.Sprintf("%s", shipperID)}}
 	var headers = url.Values{"Host": {fmt.Sprintf("%s", cls.Host)}, "User-Agent": {"AuthSDK"}}
